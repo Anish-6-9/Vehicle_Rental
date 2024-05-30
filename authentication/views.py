@@ -6,13 +6,18 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
 from .models import User
 
-from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserProfileSerializer, UserChangePasswordSerializer
+from .serializers import UserRegistrationSerializer, UserLoginSerializer, UserProfileSerializer, UserChangePasswordSerializer, UserLogoutSerializer
 from .renderers import UserRenderer
 
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken, OutstandingToken
 
 
 def get_tokens_for_user(user):
+    # Blacklist existing tokens
+    tokens = OutstandingToken.objects.filter(user=user)
+    for token in tokens:
+        _, created = BlacklistedToken.objects.get_or_create(token=token)
     # generating token manually
     refresh = RefreshToken.for_user(user)
 
@@ -68,4 +73,17 @@ class UserChangePasswordView(APIView):
             data=request.data, context={'user': request.user})
         if serializer.is_valid(raise_exception=True):
             return Response({'msg': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserLogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        serializer = UserLogoutSerializer(data=request.data)
+        if serializer.is_valid():
+            refresh_token = serializer.validated_data["refresh_token"]
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response({'msg': 'Logout successful'}, status=status.HTTP_205_RESET_CONTENT)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

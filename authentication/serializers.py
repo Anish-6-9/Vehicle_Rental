@@ -36,7 +36,11 @@ class UserLoginSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'name']
+        fields = ['id', 'email', 'name']
+
+
+class UserLogoutSerializer(serializers.Serializer):
+    refresh_token = serializers.CharField(max_length=500)
 
 
 class UserChangePasswordSerializer(serializers.ModelSerializer):
