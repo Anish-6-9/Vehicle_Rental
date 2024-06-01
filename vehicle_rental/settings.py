@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'authentication',
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -51,6 +52,11 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+    'rest_framework_simplejwt.authentication.JWTAuthentication',
 ]
 
 ROOT_URLCONF = 'vehicle_rental.urls'
@@ -136,6 +142,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=20),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": False,
 
 
     "AUTH_HEADER_TYPES": ("Bearer",),
